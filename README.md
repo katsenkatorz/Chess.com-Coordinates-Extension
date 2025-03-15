@@ -52,6 +52,30 @@ If coordinates are not displaying correctly:
 2. Open the browser console (F12) and check for error messages
 3. Reset the extension by typing `window.reinitChessCoordinates()` in the console
 
+## Roadmap
+
+This roadmap outlines the features that have been implemented and potential future enhancements for the Chess.com Coordinates Extension.
+
+### Completed Features
+
+- ~~Display coordinates on the chess.com board~~
+- ~~Hover effect that highlights the square being hovered over~~
+- ~~Support for flipped board orientation~~
+- ~~Toggle button to enable/disable coordinate display~~
+- ~~Hide/show Chess.com's original coordinates~~
+- ~~"Show Only on Hover" feature to reduce visual clutter~~
+- ~~Highlight coordinates on legal moves for selected pieces~~
+- ~~Font size adjustment (50-100%)~~
+- ~~Opacity/contrast adjustment (2-20%)~~
+- ~~Dark theme for the settings interface~~
+- ~~Capture hint detection for legal moves~~
+
+### Future Enhancements
+
+- Todo items from github issues...
+
+We welcome suggestions for new features! Please submit your ideas through the issue tracker.
+
 ## Contributing
 
 Contributions are welcome! This project is open source and we encourage developers to help improve the Chess.com Coordinates Extension.
