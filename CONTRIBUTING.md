@@ -114,6 +114,8 @@ Here are some ideas for potential contributions:
 - Add keyboard shortcuts
 - Optimize performance
 - Add localization support
+- Enhance the legal moves feature with additional chess rules (castling, en passant, etc.)
+- Add visual indicators for check, checkmate, and stalemate positions
 
 ## Community
 

@@ -5,13 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
   const hideOriginalToggle = document.getElementById('hide-original-toggle');
   const hoverEffectToggle = document.getElementById('hover-effect-toggle');
   const showOnHoverToggle = document.getElementById('show-on-hover-toggle');
+  const showLegalMovesToggle = document.getElementById('show-legal-moves-toggle');
   const fontSizeSlider = document.getElementById('font-size-slider');
   const fontSizeValue = document.getElementById('font-size-value');
   const opacitySlider = document.getElementById('opacity-slider');
   const opacityValue = document.getElementById('opacity-value');
   
   // Retrieve the current states from storage
-  chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'showOnlyOnHover', 'fontSizePercentage', 'coordinateOpacity'], function(result) {
+  chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'showOnlyOnHover', 'showLegalMoves', 'fontSizePercentage', 'coordinateOpacity'], function(result) {
     // Default to true if not set
     const showCoordinates = result.showCoordinates !== undefined ? result.showCoordinates : true;
     toggleSwitch.checked = showCoordinates;
@@ -23,6 +24,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Default to true for show only on hover
     const showOnlyOnHover = result.showOnlyOnHover !== undefined ? result.showOnlyOnHover : true;
     showOnHoverToggle.checked = showOnlyOnHover;
+    
+    // Default to false for highlight on legal moves
+    const showLegalMoves = result.showLegalMoves !== undefined ? result.showLegalMoves : false;
+    showLegalMovesToggle.checked = showLegalMoves;
     
     // Default to true for hover effect
     // If showOnlyOnHover is true, hover effect must be enabled
@@ -153,6 +158,24 @@ document.addEventListener('DOMContentLoaded', function() {
         chrome.tabs.sendMessage(tabs[0].id, { 
           action: 'toggleShowOnlyOnHover', 
           enable: showOnlyOnHover 
+        });
+      }
+    });
+  });
+  
+  // Add event listener for highlight on legal moves toggle switch
+  showLegalMovesToggle.addEventListener('change', function() {
+    const showLegalMoves = showLegalMovesToggle.checked;
+    
+    // Save state to storage
+    chrome.storage.sync.set({ showLegalMoves: showLegalMoves });
+    
+    // Send message to content script
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (tabs[0] && tabs[0].url.includes('chess.com')) {
+        chrome.tabs.sendMessage(tabs[0].id, { 
+          action: 'toggleShowLegalMoves', 
+          enable: showLegalMoves 
         });
       }
     });

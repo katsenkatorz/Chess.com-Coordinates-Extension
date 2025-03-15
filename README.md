@@ -39,6 +39,8 @@ For optimal display of coordinates, the **Impact** font should be installed on y
    - Toggle coordinate display on/off
    - Hide/show Chess.com's original coordinates
    - Enable/disable the hover highlight effect
+   - Show coordinates only on hover
+   - Highlight coordinates on legal moves for selected pieces
    - Adjust the font size of coordinates (50-100%)
    - Adjust the contrast/opacity of coordinates (2-20%)
 
