@@ -60,6 +60,41 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
+    .font-size-container {
+      margin-bottom: 15px;
+    }
+    .font-size-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #333;
+    }
+    .range-slider {
+      width: 100%;
+      height: 5px;
+      border-radius: 5px;
+      background: #ddd;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #769656;
+      cursor: pointer;
+    }
+    .range-slider::-moz-range-thumb {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #769656;
+      cursor: pointer;
+    }
     .footer {
       font-size: 12px;
       color: #666;
@@ -95,6 +130,11 @@
       <input type="checkbox" id="hover-effect-toggle" checked>
       <span class="slider"></span>
     </label>
+  </div>
+  
+  <div class="font-size-container">
+    <div class="font-size-label">Font Size: <span id="font-size-value">100%</span></div>
+    <input type="range" id="font-size-slider" min="50" max="100" value="100" class="range-slider">
   </div>
   
   <div class="footer">

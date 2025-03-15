@@ -12,6 +12,7 @@
     let currentCoordinatesVisible = true; // Track if coordinates are currently visible
     let hideOriginalCoordinates = true; // Track if original Chess.com coordinates should be hidden
     let enableHoverEffect = true; // Track if hover effect is enabled
+    let fontSizePercentage = 100; // Font size percentage (default: 100%)
     
     // Function to calculate appropriate font size based on board size
     function calculateFontSize(chessBoard) {
@@ -20,9 +21,14 @@
         const boardRect = chessBoard.getBoundingClientRect();
         const squareSize = boardRect.width / 8; // Size of one square
         
-        // Return a font size that's proportional to the square size
-        // This ensures the text always fits nicely within a square
-        return `${squareSize * 1.3}px`;
+        // Calculate base size proportional to the square size
+        const baseSize = squareSize * 1.3;
+        
+        // Apply the user's font size percentage preference
+        const adjustedSize = baseSize * (fontSizePercentage / 100);
+        
+        // Return the adjusted font size
+        return `${adjustedSize}px`;
     }
     
     // Function to update font size of all coordinate labels
@@ -381,6 +387,10 @@
             enableHoverEffect = message.enable;
             setupHoverEffect();
             sendResponse({ success: true });
+        } else if (message.action === 'updateFontSize') {
+            fontSizePercentage = message.percentage;
+            updateCoordinateFontSizes();
+            sendResponse({ success: true });
         }
         return true; // Indicate we want to send a response asynchronously
     });
@@ -414,11 +424,12 @@
         console.log("Initializing chess coordinates extension...");
         
         // Check stored visibility preferences
-        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect'], function(result) {
+        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'fontSizePercentage'], function(result) {
             // Default to true if not set
             currentCoordinatesVisible = result.showCoordinates !== undefined ? result.showCoordinates : true;
             hideOriginalCoordinates = result.hideOriginalCoordinates !== undefined ? result.hideOriginalCoordinates : true;
             enableHoverEffect = result.enableHoverEffect !== undefined ? result.enableHoverEffect : true;
+            fontSizePercentage = result.fontSizePercentage !== undefined ? result.fontSizePercentage : 100;
             
             // Set up the mutation observer if we're hiding original coordinates
             if (hideOriginalCoordinates) {
@@ -432,6 +443,7 @@
                 console.log("Chessboard found on initial load!");
                 // Chessboard is already in the DOM, add coordinates immediately
                 addCoordinateLabels();
+                updateCoordinateFontSizes(); // Apply the saved font size
                 setupHoverEffect();
                 setupBoardOrientationObserver();
                 setupResizeHandlers(initialChessBoard);
