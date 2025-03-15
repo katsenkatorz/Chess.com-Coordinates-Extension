@@ -60,6 +60,23 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
+    /* Style pour les toggles désactivés (readonly) */
+    input:disabled + .slider {
+      background-color: #e0e0e0;
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    input:disabled:checked + .slider {
+      background-color: #a9c2a2; /* Version plus claire du vert */
+    }
+    input:disabled + .slider:before {
+      background-color: #f0f0f0;
+    }
+    /* Style pour le conteneur du toggle désactivé */
+    .toggle-container.readonly {
+      opacity: 0.8;
+      cursor: not-allowed;
+    }
     .font-size-container, .opacity-container {
       margin-bottom: 15px;
     }
@@ -128,6 +145,14 @@
     <span>Highlight on Hover</span>
     <label class="toggle-switch">
       <input type="checkbox" id="hover-effect-toggle" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="toggle-container">
+    <span>Show Only on Hover</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="show-on-hover-toggle">
       <span class="slider"></span>
     </label>
   </div>

@@ -12,6 +12,7 @@
     let currentCoordinatesVisible = true; // Track if coordinates are currently visible
     let hideOriginalCoordinates = true; // Track if original Chess.com coordinates should be hidden
     let enableHoverEffect = true; // Track if hover effect is enabled
+    let showOnlyOnHover = false; // Track if coordinates should only be shown on hover
     let fontSizePercentage = 100; // Font size percentage (default: 100%)
     let coordinateOpacity = 0.06; // Default opacity for coordinates (0.06 = 6%)
     let hoverOpacity = 0.3; // Default opacity for hovered coordinates (0.3 = 30%)
@@ -225,7 +226,12 @@
                 label.style.boxSizing = 'border-box';
                 label.style.overflow = 'hidden'; // Hide text overflow
                 label.style.zIndex = '-10'; // Negative z-index to stay behind pieces
-                label.style.transition = 'color 0.3s ease'; // Smooth transition for color change
+                label.style.transition = 'color 0.3s ease, opacity 0.2s ease-in-out'; // Smooth transition for color and opacity changes
+                
+                // Set initial opacity based on showOnlyOnHover setting
+                if (showOnlyOnHover) {
+                    label.style.opacity = '0';
+                }
                 
                 // Position the label based on board orientation
                 // We use physical coordinates for positioning
@@ -295,10 +301,17 @@
         // Select all labels
         const labels = document.querySelectorAll('.coordinate-label');
         
-        // Reset all labels to their normal opacity
-        labels.forEach(label => {
-            label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
-        });
+        if (showOnlyOnHover) {
+            // Hide all labels first
+            labels.forEach(label => {
+                label.style.opacity = '0';
+            });
+        } else {
+            // Reset all labels to their normal opacity
+            labels.forEach(label => {
+                label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
+            });
+        }
         
         // Find the label corresponding to the hovered square
         if (physicalCol >= 0 && physicalCol < 8 && physicalRow >= 0 && physicalRow < 8) {
@@ -318,7 +331,12 @@
                 // Compare with a small tolerance to account for floating point precision
                 if (Math.abs(labelLeft - targetLeftValue) < 0.1 && 
                     Math.abs(labelTop - targetTopValue) < 0.1) {
-                    label.style.color = `rgba(0, 0, 0, ${hoverOpacity})`;
+                    if (showOnlyOnHover) {
+                        label.style.opacity = '1';
+                        label.style.color = `rgba(0, 0, 0, ${hoverOpacity})`;
+                    } else {
+                        label.style.color = `rgba(0, 0, 0, ${hoverOpacity})`;
+                    }
                     found = true;
                     break;
                 }
@@ -329,9 +347,17 @@
     // Function to handle mouse leaving the board
     function handleMouseLeave() {
         const labels = document.querySelectorAll('.coordinate-label');
-        labels.forEach(label => {
-            label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
-        });
+        if (showOnlyOnHover) {
+            // Hide all labels when mouse leaves the board
+            labels.forEach(label => {
+                label.style.opacity = '0';
+            });
+        } else {
+            // Reset all labels to their normal opacity
+            labels.forEach(label => {
+                label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
+            });
+        }
     }
     
     // Function to toggle coordinate visibility
@@ -403,6 +429,22 @@
             fontSizePercentage = message.percentage;
             updateCoordinateFontSizes();
             sendResponse({ success: true });
+        } else if (message.action === 'toggleShowOnlyOnHover') {
+            showOnlyOnHover = message.enable;
+            
+            // Update all labels to reflect the new setting
+            const labels = document.querySelectorAll('.coordinate-label');
+            if (showOnlyOnHover) {
+                labels.forEach(label => {
+                    label.style.opacity = '0';
+                });
+            } else {
+                labels.forEach(label => {
+                    label.style.opacity = '1';
+                    label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
+                });
+            }
+            sendResponse({ success: true });
         } else if (message.action === 'updateOpacity') {
             coordinateOpacity = message.opacity;
             // If hover opacity is not provided, calculate it based on normal opacity
@@ -442,11 +484,12 @@
         console.log("Initializing chess coordinates extension...");
         
         // Check stored visibility preferences
-        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'fontSizePercentage', 'coordinateOpacity', 'hoverOpacity'], function(result) {
+        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'showOnlyOnHover', 'fontSizePercentage', 'coordinateOpacity', 'hoverOpacity'], function(result) {
             // Default to true if not set
             currentCoordinatesVisible = result.showCoordinates !== undefined ? result.showCoordinates : true;
             hideOriginalCoordinates = result.hideOriginalCoordinates !== undefined ? result.hideOriginalCoordinates : true;
             enableHoverEffect = result.enableHoverEffect !== undefined ? result.enableHoverEffect : true;
+            showOnlyOnHover = result.showOnlyOnHover !== undefined ? result.showOnlyOnHover : true;
             fontSizePercentage = result.fontSizePercentage !== undefined ? result.fontSizePercentage : 100;
             coordinateOpacity = result.coordinateOpacity !== undefined ? result.coordinateOpacity : 0.06;
             hoverOpacity = result.hoverOpacity !== undefined ? result.hoverOpacity : 0.3;
