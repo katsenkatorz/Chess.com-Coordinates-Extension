@@ -36,7 +36,7 @@ For optimal display of coordinates, the **Impact** font should be installed on y
 3. Square coordinates will be displayed on the board
 4. Hover over a square to highlight its coordinates
 5. Click the extension icon to access the settings popup where you can:
-   - Toggle coordinate display on/off
+   - Turn the extension ON/OFF with the power button at the top
    - Hide/show Chess.com's original coordinates
    - Enable/disable the hover highlight effect
    - Show coordinates only on hover

@@ -8,6 +8,7 @@
     const MAX_RETRIES = 20;
     const RETRY_INTERVAL = 500; // ms
     let retryCount = 0;
+    let extensionEnabled = true; // Track if the extension is enabled (power button state)
     let currentBoardOrientation = false; // false = standard (white at bottom), true = flipped (black at bottom)
     let currentCoordinatesVisible = true; // Track if coordinates are currently visible
     let hideOriginalCoordinates = true; // Track if original Chess.com coordinates should be hidden
@@ -268,7 +269,19 @@
     }
     
     // Function to handle square hover effect
-    function setupHoverEffect() {
+    function setupHoverEffect(forceEnable) {
+        // Si l'extension est désactivée et forceEnable n'est pas true, ne pas ajouter d'écouteurs d'événements
+        if (!extensionEnabled && forceEnable !== true) {
+            const chessBoard = document.querySelector('wc-chess-board');
+            if (chessBoard) {
+                // Remove any existing event listeners
+                chessBoard.removeEventListener('mousemove', handleMouseMove);
+                chessBoard.removeEventListener('mouseleave', handleMouseLeave);
+                chessBoard.removeEventListener('click', handlePieceSelection);
+            }
+            return;
+        }
+        
         const chessBoard = document.querySelector('wc-chess-board');
         if (!chessBoard) return;
         
@@ -276,6 +289,11 @@
         chessBoard.removeEventListener('mousemove', handleMouseMove);
         chessBoard.removeEventListener('mouseleave', handleMouseLeave);
         chessBoard.removeEventListener('click', handlePieceSelection);
+        
+        // Si l'extension est désactivée et forceEnable n'est pas true, ne pas ajouter d'écouteurs d'événements
+        if (!currentCoordinatesVisible && forceEnable !== true) {
+            return;
+        }
         
         // Only add the event listeners if hover effect is enabled
         if (enableHoverEffect) {
@@ -286,8 +304,10 @@
             chessBoard.addEventListener('mouseleave', handleMouseLeave);
         }
         
-        // Always add piece selection listener for legal moves feature
-        chessBoard.addEventListener('click', handlePieceSelection);
+        // Add piece selection listener for legal moves feature if showLegalMoves is enabled
+        if (showLegalMoves) {
+            chessBoard.addEventListener('click', handlePieceSelection);
+        }
     }
     
     // Function to handle piece selection for legal moves
@@ -656,46 +676,70 @@
         return legalMoves;
     }
     
-    // Function to toggle coordinate visibility
+    // Function to toggle coordinate visibility - acts as a power button for the entire extension
     function toggleCoordinatesVisibility(show) {
+        // Mettre à jour l'état global de l'extension
+        extensionEnabled = show;
+        
+        // Si show est false, désactiver complètement l'extension
+        if (!show) {
+            // Masquer le conteneur de coordonnées
+            const container = document.querySelector('.coordinate-labels-container');
+            if (container) {
+                container.style.display = 'none';
+            }
+            
+            // Rétablir les coordonnées originales de Chess.com
+            const originalCoordinates = document.querySelectorAll('wc-chess-board svg.coordinates, wc-chess-board svg.coordinates text');
+            originalCoordinates.forEach(coord => {
+                coord.style.display = 'block';
+            });
+            
+            // Désactiver les écouteurs d'événements pour les mouvements de souris
+            setupHoverEffect(false);
+            
+            // Save state to local variable
+            currentCoordinatesVisible = false;
+            return;
+        }
+        
+        // Si show est true, activer l'extension
         const container = document.querySelector('.coordinate-labels-container');
         if (container) {
-            // Ne pas masquer complètement le conteneur si showLegalMoves est activé
-            container.style.display = show || showLegalMoves ? 'block' : 'none';
+            // Afficher le conteneur
+            container.style.display = 'block';
             
             // Mettre à jour l'état des coordonnées individuelles
-            if (show || showLegalMoves) {
-                const labels = document.querySelectorAll('.coordinate-label');
-                labels.forEach(label => {
-                    // Si c'est un mouvement légal et que showLegalMoves est activé, toujours afficher
-                    if (showLegalMoves && label.dataset.isLegalMove === 'true') {
-                        // Garder visible
-                        label.style.opacity = '1';
-                        // Appliquer le style approprié selon le mode
-                        const opacityToUse = !showOnlyOnHover ? hoverOpacity : legalMoveOpacity;
-                        label.style.color = `rgba(0, 0, 0, ${opacityToUse})`;
-                        label.style.fontWeight = 'bold';
-                        label.style.zIndex = '5';
-                    } else if (show) {
-                        // Afficher normalement si show est true
-                        if (showOnlyOnHover) {
-                            label.style.opacity = '0'; // Caché jusqu'au survol
-                        } else {
-                            label.style.opacity = '1';
-                            label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
-                            label.style.fontWeight = 'normal';
-                            label.style.zIndex = '-10';
-                        }
+            const labels = document.querySelectorAll('.coordinate-label');
+            labels.forEach(label => {
+                // Si c'est un mouvement légal et que showLegalMoves est activé, toujours afficher
+                if (showLegalMoves && label.dataset.isLegalMove === 'true') {
+                    // Garder visible
+                    label.style.opacity = '1';
+                    // Appliquer le style approprié selon le mode
+                    const opacityToUse = !showOnlyOnHover ? hoverOpacity : legalMoveOpacity;
+                    label.style.color = `rgba(0, 0, 0, ${opacityToUse})`;
+                    label.style.fontWeight = 'bold';
+                    label.style.zIndex = '5';
+                } else {
+                    // Afficher normalement
+                    if (showOnlyOnHover) {
+                        label.style.opacity = '0'; // Caché jusqu'au survol
                     } else {
-                        // Cacher si show est false et ce n'est pas un mouvement légal
-                        label.style.opacity = '0';
+                        label.style.opacity = '1';
+                        label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
+                        label.style.fontWeight = 'normal';
+                        label.style.zIndex = '-10';
                     }
-                });
-            }
+                }
+            });
             
             // Show/hide original coordinates based on hideOriginalCoordinates setting
             toggleOriginalCoordinates(!hideOriginalCoordinates);
-        } else if (show) {
+            
+            // Activer les écouteurs d'événements pour les mouvements de souris
+            setupHoverEffect(true);
+        } else {
             // If container doesn't exist but we want to show coordinates, create them
             addCoordinateLabels();
         }
@@ -715,6 +759,9 @@
         // Create a MutationObserver to detect changes in the DOM
         const domObserver = new MutationObserver(function(mutations) {
             setTimeout(() => {
+                // Si l'extension est désactivée, ne rien faire
+                if (!extensionEnabled) return;
+                
                 const chessBoard = document.querySelector('wc-chess-board');
                 if (!chessBoard) return;
                 
@@ -744,7 +791,16 @@
         if (message.action === 'toggleCoordinates') {
             toggleCoordinatesVisibility(message.show);
             sendResponse({ success: true });
-        } else if (message.action === 'toggleOriginalCoordinates') {
+            return;
+        }
+        
+        // Si l'extension est désactivée, ne pas traiter les autres messages
+        if (!extensionEnabled) {
+            sendResponse({ success: false, reason: 'Extension is disabled' });
+            return;
+        }
+        
+        if (message.action === 'toggleOriginalCoordinates') {
             hideOriginalCoordinates = message.hide;
             toggleOriginalCoordinates(!hideOriginalCoordinates);
             sendResponse({ success: true });

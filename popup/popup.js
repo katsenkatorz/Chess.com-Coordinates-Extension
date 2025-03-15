@@ -48,9 +48,42 @@ document.addEventListener('DOMContentLoaded', function() {
     opacityValue.textContent = opacityPercentage + '%';
   });
   
-  // Add event listener for extension coordinates toggle switch
-  toggleSwitch.addEventListener('change', function() {
+  // Add event listener for power button
+  const powerButton = document.getElementById('power-button');
+  const powerIcon = document.getElementById('power-icon');
+  const body = document.body;
+  
+  // Function to update UI based on extension state
+  function updateUIState(showCoordinates) {
+    // Update power button appearance
+    if (showCoordinates) {
+      powerIcon.classList.add('active');
+      body.classList.remove('disabled');
+    } else {
+      powerIcon.classList.remove('active');
+      body.classList.add('disabled');
+    }
+    
+    // Enable/disable other controls based on extension state
+    const allToggles = document.querySelectorAll('.toggle-switch input:not(#coordinates-toggle)');
+    const allSliders = document.querySelectorAll('.range-slider');
+    
+    allToggles.forEach(toggle => {
+      toggle.disabled = !showCoordinates;
+    });
+    
+    allSliders.forEach(slider => {
+      slider.disabled = !showCoordinates;
+    });
+  }
+  
+  powerButton.addEventListener('click', function() {
+    // Toggle the hidden checkbox
+    toggleSwitch.checked = !toggleSwitch.checked;
     const showCoordinates = toggleSwitch.checked;
+    
+    // Update UI state
+    updateUIState(showCoordinates);
     
     // Save state to storage
     chrome.storage.sync.set({ showCoordinates: showCoordinates });
@@ -64,6 +97,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
     });
+  });
+  
+  // Update power button initial state
+  chrome.storage.sync.get(['showCoordinates'], function(result) {
+    const showCoordinates = result.showCoordinates !== undefined ? result.showCoordinates : true;
+    updateUIState(showCoordinates);
   });
   
   // Add event listener for hiding original coordinates toggle switch
