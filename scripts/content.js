@@ -13,6 +13,8 @@
     let hideOriginalCoordinates = true; // Track if original Chess.com coordinates should be hidden
     let enableHoverEffect = true; // Track if hover effect is enabled
     let fontSizePercentage = 100; // Font size percentage (default: 100%)
+    let coordinateOpacity = 0.06; // Default opacity for coordinates (0.06 = 6%)
+    let hoverOpacity = 0.3; // Default opacity for hovered coordinates (0.3 = 30%)
     
     // Function to calculate appropriate font size based on board size
     function calculateFontSize(chessBoard) {
@@ -41,6 +43,16 @@
         
         labels.forEach(label => {
             label.style.fontSize = fontSize;
+        });
+    }
+    
+    // Function to update opacity of all coordinate labels
+    function updateCoordinateOpacity() {
+        const labels = document.querySelectorAll('.coordinate-label');
+        if (!labels.length) return;
+        
+        labels.forEach(label => {
+            label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
         });
     }
     
@@ -200,10 +212,10 @@
                 label.textContent = algebraic;
                 label.dataset.algebraic = algebraic; // Store algebraic notation for reference
                 label.style.position = 'absolute';
-                label.style.fontFamily = 'Impact, Charcoal, sans-serif'; // Impact font
+                label.style.fontFamily = 'Impact, Arial Black, sans-serif'; // Impact font
                 label.style.fontSize = calculateFontSize(chessBoard); // Dynamic font size based on board size
                 label.style.fontWeight = 'normal'; // Impact is already bold
-                label.style.color = 'rgba(0, 0, 0, 0.06)'; // Very transparent text
+                label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`; // Use the global opacity setting
                 label.style.backgroundColor = 'transparent'; // No background
                 label.style.width = '12.5%'; // Width of one square
                 label.style.height = '12.5%'; // Height of one square
@@ -285,7 +297,7 @@
         
         // Reset all labels to their normal opacity
         labels.forEach(label => {
-            label.style.color = 'rgba(0, 0, 0, 0.06)';
+            label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
         });
         
         // Find the label corresponding to the hovered square
@@ -306,7 +318,7 @@
                 // Compare with a small tolerance to account for floating point precision
                 if (Math.abs(labelLeft - targetLeftValue) < 0.1 && 
                     Math.abs(labelTop - targetTopValue) < 0.1) {
-                    label.style.color = 'rgba(0, 0, 0, 0.3)';
+                    label.style.color = `rgba(0, 0, 0, ${hoverOpacity})`;
                     found = true;
                     break;
                 }
@@ -318,7 +330,7 @@
     function handleMouseLeave() {
         const labels = document.querySelectorAll('.coordinate-label');
         labels.forEach(label => {
-            label.style.color = 'rgba(0, 0, 0, 0.06)';
+            label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
         });
     }
     
@@ -391,6 +403,12 @@
             fontSizePercentage = message.percentage;
             updateCoordinateFontSizes();
             sendResponse({ success: true });
+        } else if (message.action === 'updateOpacity') {
+            coordinateOpacity = message.opacity;
+            // If hover opacity is not provided, calculate it based on normal opacity
+            hoverOpacity = message.hoverOpacity || Math.min(coordinateOpacity * 5, 0.5);
+            updateCoordinateOpacity();
+            sendResponse({ success: true });
         }
         return true; // Indicate we want to send a response asynchronously
     });
@@ -424,12 +442,14 @@
         console.log("Initializing chess coordinates extension...");
         
         // Check stored visibility preferences
-        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'fontSizePercentage'], function(result) {
+        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'fontSizePercentage', 'coordinateOpacity', 'hoverOpacity'], function(result) {
             // Default to true if not set
             currentCoordinatesVisible = result.showCoordinates !== undefined ? result.showCoordinates : true;
             hideOriginalCoordinates = result.hideOriginalCoordinates !== undefined ? result.hideOriginalCoordinates : true;
             enableHoverEffect = result.enableHoverEffect !== undefined ? result.enableHoverEffect : true;
             fontSizePercentage = result.fontSizePercentage !== undefined ? result.fontSizePercentage : 100;
+            coordinateOpacity = result.coordinateOpacity !== undefined ? result.coordinateOpacity : 0.06;
+            hoverOpacity = result.hoverOpacity !== undefined ? result.hoverOpacity : 0.3;
             
             // Set up the mutation observer if we're hiding original coordinates
             if (hideOriginalCoordinates) {
@@ -444,6 +464,7 @@
                 // Chessboard is already in the DOM, add coordinates immediately
                 addCoordinateLabels();
                 updateCoordinateFontSizes(); // Apply the saved font size
+                updateCoordinateOpacity(); // Apply the saved opacity
                 setupHoverEffect();
                 setupBoardOrientationObserver();
                 setupResizeHandlers(initialChessBoard);

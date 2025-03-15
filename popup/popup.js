@@ -6,9 +6,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const hoverEffectToggle = document.getElementById('hover-effect-toggle');
   const fontSizeSlider = document.getElementById('font-size-slider');
   const fontSizeValue = document.getElementById('font-size-value');
+  const opacitySlider = document.getElementById('opacity-slider');
+  const opacityValue = document.getElementById('opacity-value');
   
   // Retrieve the current states from storage
-  chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'fontSizePercentage'], function(result) {
+  chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect', 'fontSizePercentage', 'coordinateOpacity'], function(result) {
     // Default to true if not set
     const showCoordinates = result.showCoordinates !== undefined ? result.showCoordinates : true;
     toggleSwitch.checked = showCoordinates;
@@ -25,6 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const fontSizePercentage = result.fontSizePercentage !== undefined ? result.fontSizePercentage : 100;
     fontSizeSlider.value = fontSizePercentage;
     fontSizeValue.textContent = fontSizePercentage + '%';
+    
+    // Default to 0.06 (6%) for opacity
+    const opacityPercentage = result.coordinateOpacity !== undefined ? Math.round(result.coordinateOpacity * 100) : 6;
+    opacitySlider.value = opacityPercentage;
+    opacityValue.textContent = opacityPercentage + '%';
   });
   
   // Add event listener for extension coordinates toggle switch
@@ -95,6 +102,35 @@ document.addEventListener('DOMContentLoaded', function() {
         chrome.tabs.sendMessage(tabs[0].id, { 
           action: 'updateFontSize', 
           percentage: fontSizePercentage 
+        });
+      }
+    });
+  });
+  
+  // Add event listener for opacity slider
+  opacitySlider.addEventListener('input', function() {
+    const opacityPercentage = parseInt(opacitySlider.value);
+    opacityValue.textContent = opacityPercentage + '%';
+    
+    // Convert percentage to decimal for actual opacity value (e.g., 6% -> 0.06)
+    const opacityDecimal = opacityPercentage / 100;
+    
+    // Calculate hover opacity (5x normal opacity, but max 0.5)
+    const hoverOpacityDecimal = Math.min(opacityDecimal * 5, 0.5);
+    
+    // Save state to storage
+    chrome.storage.sync.set({ 
+      coordinateOpacity: opacityDecimal,
+      hoverOpacity: hoverOpacityDecimal
+    });
+    
+    // Send message to content script
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (tabs[0] && tabs[0].url.includes('chess.com')) {
+        chrome.tabs.sendMessage(tabs[0].id, { 
+          action: 'updateOpacity', 
+          opacity: opacityDecimal,
+          hoverOpacity: hoverOpacityDecimal
         });
       }
     });
