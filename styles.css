@@ -1,0 +1,11 @@
+/* Chess.com Coordinates Extension Styles */
+
+.chess-coords-extension {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.chess-coords-extension div {
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fond de l'échiquier avec les couleurs officielles de chess.com -->
+  <rect x="14" y="14" width="100" height="100" fill="#e5e5e5" stroke="#312e2b" stroke-width="2"/>
+  
+  <!-- Cases de l'échiquier avec les couleurs officielles de chess.com -->
+  <!-- Cases foncées: #769656 (vert) -->
+  <!-- Cases claires: #eeeed2 (beige clair) -->
+  <rect x="14" y="14" width="25" height="25" fill="#769656"/>
+  <rect x="64" y="14" width="25" height="25" fill="#769656"/>
+  <rect x="39" y="39" width="25" height="25" fill="#769656"/>
+  <rect x="89" y="39" width="25" height="25" fill="#769656"/>
+  <rect x="14" y="64" width="25" height="25" fill="#769656"/>
+  <rect x="64" y="64" width="25" height="25" fill="#769656"/>
+  <rect x="39" y="89" width="25" height="25" fill="#769656"/>
+  <rect x="89" y="89" width="25" height="25" fill="#769656"/>
+  
+  <!-- Cases claires -->
+  <rect x="39" y="14" width="25" height="25" fill="#eeeed2"/>
+  <rect x="89" y="14" width="25" height="25" fill="#eeeed2"/>
+  <rect x="14" y="39" width="25" height="25" fill="#eeeed2"/>
+  <rect x="64" y="39" width="25" height="25" fill="#eeeed2"/>
+  <rect x="39" y="64" width="25" height="25" fill="#eeeed2"/>
+  <rect x="89" y="64" width="25" height="25" fill="#eeeed2"/>
+  <rect x="14" y="89" width="25" height="25" fill="#eeeed2"/>
+  <rect x="64" y="89" width="25" height="25" fill="#eeeed2"/>
+  
+  <!-- Texte de coordonnée en surbrillance -->
+  <text x="64" y="64" font-family="Impact" font-size="80" font-weight="normal" fill="rgba(0,0,0,0.3)" text-anchor="middle" dominant-baseline="middle">E4</text>
+</svg>
