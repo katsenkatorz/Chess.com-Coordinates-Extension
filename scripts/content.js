@@ -11,6 +11,7 @@
     let currentBoardOrientation = false; // false = standard (white at bottom), true = flipped (black at bottom)
     let currentCoordinatesVisible = true; // Track if coordinates are currently visible
     let hideOriginalCoordinates = true; // Track if original Chess.com coordinates should be hidden
+    let enableHoverEffect = true; // Track if hover effect is enabled
     
     // Function to calculate appropriate font size based on board size
     function calculateFontSize(chessBoard) {
@@ -245,60 +246,73 @@
         const chessBoard = document.querySelector('wc-chess-board');
         if (!chessBoard) return;
         
-        // Add event listener for mouse movement
-        chessBoard.addEventListener('mousemove', function(e) {
-            // Get board dimensions
-            const rect = chessBoard.getBoundingClientRect();
-            const squareSize = rect.width / 8;
+        // Remove any existing event listeners
+        chessBoard.removeEventListener('mousemove', handleMouseMove);
+        chessBoard.removeEventListener('mouseleave', handleMouseLeave);
+        
+        // Only add the event listeners if hover effect is enabled
+        if (enableHoverEffect) {
+            // Add event listener for mouse movement
+            chessBoard.addEventListener('mousemove', handleMouseMove);
             
-            // Calculate mouse position relative to the board
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            // Determine the hovered square's physical position
-            const physicalCol = Math.floor(x / squareSize);
-            const physicalRow = Math.floor(y / squareSize);
-            
-            // Select all labels
-            const labels = document.querySelectorAll('.coordinate-label');
-            
-            // Reset all labels to their normal opacity
-            labels.forEach(label => {
-                label.style.color = 'rgba(0, 0, 0, 0.06)';
-            });
-            
-            // Find the label corresponding to the hovered square
-            if (physicalCol >= 0 && physicalCol < 8 && physicalRow >= 0 && physicalRow < 8) {
-                // Calculate the expected position values
-                const targetLeftValue = (physicalCol / 8) * 100;
-                const targetTopValue = (physicalRow / 8) * 100;
-                
-                // Find the label at this position by comparing numeric values
-                let found = false;
-                for (let i = 0; i < labels.length; i++) {
-                    const label = labels[i];
-                    
-                    // Extract numeric values from style strings (remove '%' and convert to number)
-                    const labelLeft = parseFloat(label.style.left);
-                    const labelTop = parseFloat(label.style.top);
-                    
-                    // Compare with a small tolerance to account for floating point precision
-                    if (Math.abs(labelLeft - targetLeftValue) < 0.1 && 
-                        Math.abs(labelTop - targetTopValue) < 0.1) {
-                        label.style.color = 'rgba(0, 0, 0, 0.3)';
-                        found = true;
-                        break;
-                    }
-                }
-            }
+            // Add event listener for mouse leaving the board
+            chessBoard.addEventListener('mouseleave', handleMouseLeave);
+        }
+    }
+    
+    // Function to handle mouse movement for hover effect
+    function handleMouseMove(e) {
+        // Get board dimensions
+        const rect = e.currentTarget.getBoundingClientRect();
+        const squareSize = rect.width / 8;
+        
+        // Calculate mouse position relative to the board
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Determine the hovered square's physical position
+        const physicalCol = Math.floor(x / squareSize);
+        const physicalRow = Math.floor(y / squareSize);
+        
+        // Select all labels
+        const labels = document.querySelectorAll('.coordinate-label');
+        
+        // Reset all labels to their normal opacity
+        labels.forEach(label => {
+            label.style.color = 'rgba(0, 0, 0, 0.06)';
         });
         
-        // Reset when mouse leaves the board
-        chessBoard.addEventListener('mouseleave', function() {
-            const labels = document.querySelectorAll('.coordinate-label');
-            labels.forEach(label => {
-                label.style.color = 'rgba(0, 0, 0, 0.06)';
-            });
+        // Find the label corresponding to the hovered square
+        if (physicalCol >= 0 && physicalCol < 8 && physicalRow >= 0 && physicalRow < 8) {
+            // Calculate the expected position values
+            const targetLeftValue = (physicalCol / 8) * 100;
+            const targetTopValue = (physicalRow / 8) * 100;
+            
+            // Find the label at this position by comparing numeric values
+            let found = false;
+            for (let i = 0; i < labels.length; i++) {
+                const label = labels[i];
+                
+                // Extract numeric values from style strings (remove '%' and convert to number)
+                const labelLeft = parseFloat(label.style.left);
+                const labelTop = parseFloat(label.style.top);
+                
+                // Compare with a small tolerance to account for floating point precision
+                if (Math.abs(labelLeft - targetLeftValue) < 0.1 && 
+                    Math.abs(labelTop - targetTopValue) < 0.1) {
+                    label.style.color = 'rgba(0, 0, 0, 0.3)';
+                    found = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Function to handle mouse leaving the board
+    function handleMouseLeave() {
+        const labels = document.querySelectorAll('.coordinate-label');
+        labels.forEach(label => {
+            label.style.color = 'rgba(0, 0, 0, 0.06)';
         });
     }
     
@@ -363,6 +377,10 @@
             hideOriginalCoordinates = message.hide;
             toggleOriginalCoordinates(!hideOriginalCoordinates);
             sendResponse({ success: true });
+        } else if (message.action === 'toggleHoverEffect') {
+            enableHoverEffect = message.enable;
+            setupHoverEffect();
+            sendResponse({ success: true });
         }
         return true; // Indicate we want to send a response asynchronously
     });
@@ -396,10 +414,11 @@
         console.log("Initializing chess coordinates extension...");
         
         // Check stored visibility preferences
-        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates'], function(result) {
+        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates', 'enableHoverEffect'], function(result) {
             // Default to true if not set
             currentCoordinatesVisible = result.showCoordinates !== undefined ? result.showCoordinates : true;
             hideOriginalCoordinates = result.hideOriginalCoordinates !== undefined ? result.hideOriginalCoordinates : true;
+            enableHoverEffect = result.enableHoverEffect !== undefined ? result.enableHoverEffect : true;
             
             // Set up the mutation observer if we're hiding original coordinates
             if (hideOriginalCoordinates) {
