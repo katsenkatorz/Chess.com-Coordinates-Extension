@@ -67,6 +67,11 @@
         originalCoordinateTexts.forEach(text => {
             text.style.display = show ? 'block' : 'none';
         });
+        
+        // If we're hiding coordinates, set up a mutation observer to catch any newly added coordinates
+        if (!show) {
+            setupCoordinatesMutationObserver();
+        }
     }
     
     // Function to determine if the board is flipped (black at bottom)
@@ -362,6 +367,30 @@
         return true; // Indicate we want to send a response asynchronously
     });
     
+    // Set up a mutation observer to detect when Chess.com adds coordinates to the DOM
+    function setupCoordinatesMutationObserver() {
+        // Create a mutation observer to watch for changes to the DOM
+        const coordinatesObserver = new MutationObserver(function(mutations) {
+            // Check if any new SVG coordinates were added
+            const newCoordinates = document.querySelectorAll('wc-chess-board svg.coordinates');
+            if (newCoordinates.length > 0) {
+                // Apply the current setting for hiding original coordinates
+                newCoordinates.forEach(svg => {
+                    svg.style.display = hideOriginalCoordinates ? 'none' : 'block';
+                });
+                
+                // Also check for text elements
+                const newCoordinateTexts = document.querySelectorAll('wc-chess-board svg.coordinates text');
+                newCoordinateTexts.forEach(text => {
+                    text.style.display = hideOriginalCoordinates ? 'none' : 'block';
+                });
+            }
+        });
+        
+        // Start observing the document with the configured parameters
+        coordinatesObserver.observe(document.body, { childList: true, subtree: true });
+    }
+    
     // Main initialization function
     function init() {
         console.log("Initializing chess coordinates extension...");
@@ -371,6 +400,11 @@
             // Default to true if not set
             currentCoordinatesVisible = result.showCoordinates !== undefined ? result.showCoordinates : true;
             hideOriginalCoordinates = result.hideOriginalCoordinates !== undefined ? result.hideOriginalCoordinates : true;
+            
+            // Set up the mutation observer if we're hiding original coordinates
+            if (hideOriginalCoordinates) {
+                setupCoordinatesMutationObserver();
+            }
             
             // Try to find the chessboard immediately
             const initialChessBoard = document.querySelector('wc-chess-board');
