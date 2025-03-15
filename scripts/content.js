@@ -285,7 +285,7 @@
         const chessBoard = document.querySelector('wc-chess-board');
         if (!chessBoard) return;
         
-        // Remove any existing event listeners
+        // Remove any existing event listeners to prevent duplicates
         chessBoard.removeEventListener('mousemove', handleMouseMove);
         chessBoard.removeEventListener('mouseleave', handleMouseLeave);
         chessBoard.removeEventListener('click', handlePieceSelection);
@@ -302,11 +302,17 @@
             
             // Add event listener for mouse leaving the board
             chessBoard.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Log for debugging
+            console.log('Hover effect listeners added');
+        } else {
+            console.log('Hover effect disabled, no listeners added');
         }
         
         // Add piece selection listener for legal moves feature if showLegalMoves is enabled
         if (showLegalMoves) {
             chessBoard.addEventListener('click', handlePieceSelection);
+            console.log('Legal moves listener added');
         }
     }
     
@@ -789,7 +795,8 @@
     // Listen for messages from the popup
     chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         if (message.action === 'toggleCoordinates') {
-            toggleCoordinatesVisibility(message.show);
+            currentCoordinatesVisible = message.show;
+            toggleCoordinatesVisibility(message.show, true);
             sendResponse({ success: true });
             return;
         }
@@ -803,6 +810,8 @@
         if (message.action === 'toggleOriginalCoordinates') {
             hideOriginalCoordinates = message.hide;
             toggleOriginalCoordinates(!hideOriginalCoordinates);
+            // Re-setup hover effect to ensure it works after toggling original coordinates
+            setupHoverEffect(true);
             sendResponse({ success: true });
         } else if (message.action === 'toggleHoverEffect') {
             enableHoverEffect = message.enable;
@@ -822,6 +831,8 @@
         } else if (message.action === 'updateFontSize') {
             fontSizePercentage = message.percentage;
             updateCoordinateFontSizes();
+            // Re-setup hover effect to ensure it works after font size changes
+            setupHoverEffect(true);
             sendResponse({ success: true });
         } else if (message.action === 'toggleShowOnlyOnHover') {
             showOnlyOnHover = message.enable;
@@ -855,12 +866,17 @@
                     }
                 });
             }
+            
+            // Always re-setup hover effect when this setting changes
+            setupHoverEffect(true);
             sendResponse({ success: true });
         } else if (message.action === 'updateOpacity') {
             coordinateOpacity = message.opacity;
             // If hover opacity is not provided, calculate it based on normal opacity
             hoverOpacity = message.hoverOpacity || Math.min(coordinateOpacity * 5, 0.5);
             updateCoordinateOpacity();
+            // Re-setup hover effect to ensure it works after opacity changes
+            setupHoverEffect(true);
             sendResponse({ success: true });
         } else if (message.action === 'toggleShowLegalMoves') {
             showLegalMoves = message.enable;
@@ -873,17 +889,15 @@
                 // even if Show Coordinates is disabled
                 toggleCoordinatesVisibility(currentCoordinatesVisible);
                 
-                // Force re-setup of hover effect to ensure it works with legal moves
-                if (enableHoverEffect) {
-                    setupHoverEffect(true);
-                }
-                
                 // If a piece is already selected, highlight its legal moves
                 const selectedPiece = document.querySelector('.piece.selected');
                 if (selectedPiece) {
                     highlightLegalMoves(selectedPiece);
                 }
             }
+            
+            // Always re-setup hover effect when this setting changes, regardless of enableHoverEffect
+            setupHoverEffect(true);
             
             sendResponse({ success: true });
         }
