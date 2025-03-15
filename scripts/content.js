@@ -10,6 +10,7 @@
     let retryCount = 0;
     let currentBoardOrientation = false; // false = standard (white at bottom), true = flipped (black at bottom)
     let currentCoordinatesVisible = true; // Track if coordinates are currently visible
+    let hideOriginalCoordinates = true; // Track if original Chess.com coordinates should be hidden
     
     // Function to calculate appropriate font size based on board size
     function calculateFontSize(chessBoard) {
@@ -55,9 +56,16 @@
     
     // Function to toggle visibility of original coordinates
     function toggleOriginalCoordinates(show) {
-        const originalCoordinates = document.querySelectorAll('svg.coordinate-label');
-        originalCoordinates.forEach(coord => {
-            coord.style.display = show ? 'block' : 'none';
+        // Target the SVG coordinates element that contains the original Chess.com coordinates
+        const originalCoordinatesSvg = document.querySelectorAll('wc-chess-board svg.coordinates');
+        originalCoordinatesSvg.forEach(svg => {
+            svg.style.display = show ? 'block' : 'none';
+        });
+        
+        // Also target individual coordinate text elements if they exist
+        const originalCoordinateTexts = document.querySelectorAll('wc-chess-board svg.coordinates text');
+        originalCoordinateTexts.forEach(text => {
+            text.style.display = show ? 'block' : 'none';
         });
     }
     
@@ -295,8 +303,8 @@
         if (container) {
             container.style.display = show ? 'block' : 'none';
             
-            // Show/hide original coordinates based on our coordinates state
-            toggleOriginalCoordinates(!show);
+            // Show/hide original coordinates based on hideOriginalCoordinates setting
+            toggleOriginalCoordinates(!hideOriginalCoordinates);
         } else if (show) {
             // If container doesn't exist but we want to show coordinates, create them
             addCoordinateLabels();
@@ -346,6 +354,10 @@
         if (message.action === 'toggleCoordinates') {
             toggleCoordinatesVisibility(message.show);
             sendResponse({ success: true });
+        } else if (message.action === 'toggleOriginalCoordinates') {
+            hideOriginalCoordinates = message.hide;
+            toggleOriginalCoordinates(!hideOriginalCoordinates);
+            sendResponse({ success: true });
         }
         return true; // Indicate we want to send a response asynchronously
     });
@@ -354,10 +366,11 @@
     function init() {
         console.log("Initializing chess coordinates extension...");
         
-        // Check stored visibility preference
-        chrome.storage.sync.get(['showCoordinates'], function(result) {
+        // Check stored visibility preferences
+        chrome.storage.sync.get(['showCoordinates', 'hideOriginalCoordinates'], function(result) {
             // Default to true if not set
             currentCoordinatesVisible = result.showCoordinates !== undefined ? result.showCoordinates : true;
+            hideOriginalCoordinates = result.hideOriginalCoordinates !== undefined ? result.hideOriginalCoordinates : true;
             
             // Try to find the chessboard immediately
             const initialChessBoard = document.querySelector('wc-chess-board');
@@ -369,6 +382,9 @@
                 setupHoverEffect();
                 setupBoardOrientationObserver();
                 setupResizeHandlers(initialChessBoard);
+                
+                // Apply the hideOriginalCoordinates setting immediately
+                toggleOriginalCoordinates(!hideOriginalCoordinates);
             } else {
                 console.log("Chessboard not found on initial load, waiting...");
                 // Set up a polling mechanism to find the chessboard
@@ -385,6 +401,9 @@
                         setupHoverEffect();
                         setupBoardOrientationObserver();
                         setupResizeHandlers(chessBoard);
+                        
+                        // Apply the hideOriginalCoordinates setting
+                        toggleOriginalCoordinates(!hideOriginalCoordinates);
                     } else if (attempts < maxAttempts) {
                         attempts++;
                         console.log(`Polling for chessboard (${attempts}/${maxAttempts})...`);
