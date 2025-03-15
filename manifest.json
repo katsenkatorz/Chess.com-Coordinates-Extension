@@ -3,7 +3,10 @@
   "name": "Chess.com Coordinates Extension",
   "version": "1.0",
   "description": "Display coordinates on Chess.com board",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "tabs"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["*://*.chess.com/*"],
