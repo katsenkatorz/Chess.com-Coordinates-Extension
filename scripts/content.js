@@ -18,7 +18,7 @@
     let fontSizePercentage = 100; // Font size percentage (default: 100%)
     let coordinateOpacity = 0.06; // Default opacity for coordinates (0.06 = 6%)
     let hoverOpacity = 0.3; // Default opacity for hovered coordinates (0.3 = 30%)
-    let legalMoveOpacity = 0.2; // Opacité réduite pour un rendu plus subtil des coordonnées sur les mouvements légaux
+    let legalMoveOpacity = 0.06; // Same opacity as normal coordinates
     
     // Function to calculate appropriate font size based on board size
     function calculateFontSize(chessBoard) {
@@ -270,7 +270,7 @@
     
     // Function to handle square hover effect
     function setupHoverEffect(forceEnable) {
-        // Si l'extension est désactivée et forceEnable n'est pas true, ne pas ajouter d'écouteurs d'événements
+        // If the extension is disabled and forceEnable is not true, don't add event listeners
         if (!extensionEnabled && forceEnable !== true) {
             const chessBoard = document.querySelector('wc-chess-board');
             if (chessBoard) {
@@ -290,7 +290,7 @@
         chessBoard.removeEventListener('mouseleave', handleMouseLeave);
         chessBoard.removeEventListener('click', handlePieceSelection);
         
-        // Si l'extension est désactivée et forceEnable n'est pas true, ne pas ajouter d'écouteurs d'événements
+        // If the extension is disabled and forceEnable is not true, don't add event listeners
         if (!currentCoordinatesVisible && forceEnable !== true) {
             return;
         }
@@ -352,13 +352,13 @@
         } else {
             // Reset all labels to their normal opacity
             labels.forEach(label => {
-                // Ne pas réinitialiser les cases de mouvements légaux
+                // Don't reset legal move squares
                 if (!(showLegalMoves && label.dataset.isLegalMove === 'true')) {
                     label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
                     label.style.fontWeight = 'normal';
                     label.style.textShadow = 'none';
                 }
-                // Réinitialiser le flag isHovered
+                // Reset the isHovered flag
                 label.dataset.isHovered = 'false';
             });
         }
@@ -381,15 +381,15 @@
                 // Compare with a small tolerance to account for floating point precision
                 if (Math.abs(labelLeft - targetLeftValue) < 0.1 && 
                     Math.abs(labelTop - targetTopValue) < 0.1) {
-                    // Marquer cette case comme survolée
+                    // Mark this square as hovered
                     label.dataset.isHovered = 'true';
                     
                     if (showOnlyOnHover) {
                         label.style.opacity = '1';
-                        // Même si c'est un mouvement légal, priorité au survol
+                        // Even if it's a legal move, hover takes priority
                         label.style.color = `rgba(0, 0, 0, ${hoverOpacity})`;
                     } else {
-                        // Même si c'est un mouvement légal, priorité au survol
+                        // Even if it's a legal move, hover takes priority
                         label.style.color = `rgba(0, 0, 0, ${hoverOpacity})`;
                     }
                     found = true;
@@ -403,7 +403,7 @@
     function handleMouseLeave() {
         const labels = document.querySelectorAll('.coordinate-label');
         
-        // Réinitialiser tous les flags isHovered
+        // Reset all isHovered flags
         labels.forEach(label => {
             label.dataset.isHovered = 'false';
         });
@@ -411,11 +411,11 @@
         if (showOnlyOnHover) {
             // Hide all labels when mouse leaves the board, except legal moves if enabled
             labels.forEach(label => {
-                // Si nous montrons les mouvements légaux et que c'est un mouvement légal, ne pas le cacher
+                // If we're showing legal moves and this is a legal move, don't hide it
                 if (showLegalMoves && label.dataset.isLegalMove === 'true') {
                     label.style.opacity = '1';
-                    // Appliquer les styles de mise en évidence pour les mouvements légaux
-                    // Utiliser legalMoveOpacity car nous sommes en mode showOnlyOnHover
+                    // Apply highlight styles for legal moves
+                    // Use legalMoveOpacity because we are in showOnlyOnHover mode
                     label.style.color = `rgba(0, 0, 0, ${legalMoveOpacity})`;
                     label.style.fontWeight = 'bold';
                     label.style.zIndex = '5';
@@ -428,7 +428,7 @@
             labels.forEach(label => {
                 // If we're showing legal moves and this is a legal move square, keep it highlighted
                 if (showLegalMoves && label.dataset.isLegalMove === 'true') {
-                    // Utiliser hoverOpacity quand showOnlyOnHover est désactivé, sinon utiliser legalMoveOpacity
+                    // Use hoverOpacity when showOnlyOnHover is disabled, otherwise use legalMoveOpacity
                     const opacityToUse = !showOnlyOnHover ? hoverOpacity : legalMoveOpacity;
                     label.style.color = `rgba(0, 0, 0, ${opacityToUse})`;
                     label.style.fontWeight = 'bold';
@@ -450,26 +450,26 @@
         // Clear previous legal move highlights
         clearLegalMoveHighlights();
         
-        // Attendre que Chess.com ajoute les éléments 'hint' au DOM
+        // Wait for Chess.com to add 'hint' and 'capture-hint' elements to the DOM
         setTimeout(() => {
-            // Utiliser les éléments 'hint' que Chess.com ajoute au DOM
-            const hintElements = document.querySelectorAll('[data-test-element="hint"]');
+            // Use the 'hint' and 'capture-hint' elements that Chess.com adds to the DOM
+            const hintElements = document.querySelectorAll('[data-test-element="hint"], [data-test-element="capture-hint"]');
             if (hintElements.length === 0) return;
             
-            // Trouver les cases correspondant aux indices des éléments 'hint'
+            // Find squares corresponding to the indices of 'hint' and 'capture-hint' elements
             hintElements.forEach(hint => {
                 const hintClasses = hint.getAttribute('class');
                 if (!hintClasses) return;
                 
-                // Extraire le numéro de case à partir de la classe (ex: 'hint square-54')
+                // Extract square number from class (e.g., 'hint square-54' or 'capture-hint square-45')
                 const squareMatch = hintClasses.match(/square-(\d+)/);
                 if (!squareMatch) return;
                 
                 const squareNumber = parseInt(squareMatch[1]);
                 if (isNaN(squareNumber)) return;
                 
-                // Convertir le numéro de case en notation algébrique
-                // Chess.com utilise un système où 11=a1, 18=h1, 81=a8, 88=h8
+                // Convert square number to algebraic notation
+                // Chess.com uses a system where 11=a1, 18=h1, 81=a8, 88=h8
                 const col = Math.floor(squareNumber / 10) - 1;
                 const row = squareNumber % 10 - 1;
                 
@@ -477,49 +477,49 @@
                 
                 const algebraic = String.fromCharCode(97 + col) + (row + 1);
                 
-                // Trouver le label correspondant à cette case
+                // Find the label corresponding to this square
                 const labels = document.querySelectorAll('.coordinate-label');
                 labels.forEach(label => {
                     if (label.dataset.algebraic.toLowerCase() === algebraic) {
-                        // Ne mettre en évidence que si la case n'est pas déjà survolée
+                        // Only highlight if the square is not already hovered
                         if (label.dataset.isHovered !== 'true') {
-                            // Mettre en évidence les coordonnées des mouvements légaux
-                            // Utiliser hoverOpacity quand showOnlyOnHover est désactivé, sinon utiliser legalMoveOpacity
+                            // Highlight coordinates of legal moves
+                            // Use hoverOpacity when showOnlyOnHover is disabled, otherwise use legalMoveOpacity
                             const opacityToUse = !showOnlyOnHover ? hoverOpacity : legalMoveOpacity;
                             label.style.color = `rgba(0, 0, 0, ${opacityToUse})`;
                             label.style.fontWeight = 'bold';
-                            label.style.zIndex = '5'; // Amener les coordonnées au premier plan
+                            label.style.zIndex = '5'; // Bring coordinates to the foreground
                         }
-                        // Toujours marquer comme mouvement légal pour référence future
+                        // Always mark as legal move for future reference
                         label.dataset.isLegalMove = 'true';
                         
-                        // S'assurer que les coordonnées sont toujours visibles pour les mouvements légaux,
-                        // même si Show Coordinates est désactivé ou en mode 'showOnlyOnHover'
+                        // Ensure coordinates are always visible for legal moves,
+                        // even if Show Coordinates is disabled or in 'showOnlyOnHover' mode
                         label.style.opacity = '1';
                     }
                 });
             });
-        }, 50); // Petit délai pour s'assurer que Chess.com a eu le temps d'ajouter les éléments 'hint'
+        }, 50); // Small delay to ensure Chess.com has had time to add 'hint' elements
     }
     
     // Function to clear legal move highlights
     function clearLegalMoveHighlights() {
         const labels = document.querySelectorAll('.coordinate-label');
         labels.forEach(label => {
-            // Marquer que ce n'est plus un mouvement légal
+            // Mark that this is no longer a legal move
             label.dataset.isLegalMove = 'false';
             
-            // Si on est en mode 'showOnlyOnHover' et que la case n'est pas survolée, la cacher
+            // If in 'showOnlyOnHover' mode and the square is not hovered, hide it
             if (showOnlyOnHover && label.dataset.isHovered !== 'true') {
                 label.style.opacity = '0';
             }
             
-            // Si la case n'est pas survolée, réinitialiser tous les styles
+            // If the square is not hovered, reset all styles
             if (label.dataset.isHovered !== 'true') {
                 label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
                 label.style.fontWeight = 'normal';
                 label.style.textShadow = 'none';
-                label.style.zIndex = '-10'; // Remettre les coordonnées en arrière-plan
+                label.style.zIndex = '-10'; // Put coordinates back in the background
             }
         });
     }
@@ -678,24 +678,24 @@
     
     // Function to toggle coordinate visibility - acts as a power button for the entire extension
     function toggleCoordinatesVisibility(show) {
-        // Mettre à jour l'état global de l'extension
+        // Update the global state of the extension
         extensionEnabled = show;
         
-        // Si show est false, désactiver complètement l'extension
+        // If show is false, completely disable the extension
         if (!show) {
-            // Masquer le conteneur de coordonnées
+            // Hide the coordinates container
             const container = document.querySelector('.coordinate-labels-container');
             if (container) {
                 container.style.display = 'none';
             }
             
-            // Rétablir les coordonnées originales de Chess.com
+            // Restore the original Chess.com coordinates
             const originalCoordinates = document.querySelectorAll('wc-chess-board svg.coordinates, wc-chess-board svg.coordinates text');
             originalCoordinates.forEach(coord => {
                 coord.style.display = 'block';
             });
             
-            // Désactiver les écouteurs d'événements pour les mouvements de souris
+            // Disable event listeners for mouse movements
             setupHoverEffect(false);
             
             // Save state to local variable
@@ -709,14 +709,14 @@
             // Afficher le conteneur
             container.style.display = 'block';
             
-            // Mettre à jour l'état des coordonnées individuelles
+            // Update the state of individual coordinates
             const labels = document.querySelectorAll('.coordinate-label');
             labels.forEach(label => {
-                // Si c'est un mouvement légal et que showLegalMoves est activé, toujours afficher
+                // If it's a legal move and showLegalMoves is enabled, always display
                 if (showLegalMoves && label.dataset.isLegalMove === 'true') {
                     // Garder visible
                     label.style.opacity = '1';
-                    // Appliquer le style approprié selon le mode
+                    // Apply the appropriate style based on the mode
                     const opacityToUse = !showOnlyOnHover ? hoverOpacity : legalMoveOpacity;
                     label.style.color = `rgba(0, 0, 0, ${opacityToUse})`;
                     label.style.fontWeight = 'bold';
@@ -724,7 +724,7 @@
                 } else {
                     // Afficher normalement
                     if (showOnlyOnHover) {
-                        label.style.opacity = '0'; // Caché jusqu'au survol
+                        label.style.opacity = '0'; // Hidden until hover
                     } else {
                         label.style.opacity = '1';
                         label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
@@ -737,7 +737,7 @@
             // Show/hide original coordinates based on hideOriginalCoordinates setting
             toggleOriginalCoordinates(!hideOriginalCoordinates);
             
-            // Activer les écouteurs d'événements pour les mouvements de souris
+            // Enable event listeners for mouse movements
             setupHoverEffect(true);
         } else {
             // If container doesn't exist but we want to show coordinates, create them
@@ -759,7 +759,7 @@
         // Create a MutationObserver to detect changes in the DOM
         const domObserver = new MutationObserver(function(mutations) {
             setTimeout(() => {
-                // Si l'extension est désactivée, ne rien faire
+                // If the extension is disabled, do nothing
                 if (!extensionEnabled) return;
                 
                 const chessBoard = document.querySelector('wc-chess-board');
@@ -794,7 +794,7 @@
             return;
         }
         
-        // Si l'extension est désactivée, ne pas traiter les autres messages
+        // If the extension is disabled, don't process other messages
         if (!extensionEnabled) {
             sendResponse({ success: false, reason: 'Extension is disabled' });
             return;
@@ -806,7 +806,18 @@
             sendResponse({ success: true });
         } else if (message.action === 'toggleHoverEffect') {
             enableHoverEffect = message.enable;
-            setupHoverEffect();
+            // Force re-setup of hover effect by removing and re-adding event listeners
+            const chessBoard = document.querySelector('wc-chess-board');
+            if (chessBoard) {
+                // Remove existing event listeners
+                chessBoard.removeEventListener('mousemove', handleMouseMove);
+                chessBoard.removeEventListener('mouseleave', handleMouseLeave);
+                
+                // Re-setup hover effect with force enable if enableHoverEffect is true
+                if (enableHoverEffect) {
+                    setupHoverEffect(true);
+                }
+            }
             sendResponse({ success: true });
         } else if (message.action === 'updateFontSize') {
             fontSizePercentage = message.percentage;
@@ -819,12 +830,29 @@
             const labels = document.querySelectorAll('.coordinate-label');
             if (showOnlyOnHover) {
                 labels.forEach(label => {
-                    label.style.opacity = '0';
+                    // If it's a legal move and showLegalMoves is enabled, keep it visible
+                    if (showLegalMoves && label.dataset.isLegalMove === 'true') {
+                        label.style.opacity = '1';
+                        label.style.color = `rgba(0, 0, 0, ${legalMoveOpacity})`;
+                        label.style.fontWeight = 'bold';
+                        label.style.zIndex = '5';
+                    } else {
+                        label.style.opacity = '0';
+                    }
                 });
             } else {
                 labels.forEach(label => {
                     label.style.opacity = '1';
-                    label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
+                    
+                    // If it's a legal move and showLegalMoves is enabled, apply legal move style
+                    if (showLegalMoves && label.dataset.isLegalMove === 'true') {
+                        label.style.color = `rgba(0, 0, 0, ${hoverOpacity})`;
+                        label.style.fontWeight = 'bold';
+                        label.style.zIndex = '5';
+                    } else {
+                        label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`;
+                        label.style.fontWeight = 'normal';
+                    }
                 });
             }
             sendResponse({ success: true });
@@ -841,9 +869,20 @@
             if (!showLegalMoves) {
                 clearLegalMoveHighlights();
             } else {
-                // Si on active showLegalMoves, on doit s'assurer que les coordonnées sont visibles
-                // même si Show Coordinates est désactivé
+                // If enabling showLegalMoves, we need to ensure coordinates are visible
+                // even if Show Coordinates is disabled
                 toggleCoordinatesVisibility(currentCoordinatesVisible);
+                
+                // Force re-setup of hover effect to ensure it works with legal moves
+                if (enableHoverEffect) {
+                    setupHoverEffect(true);
+                }
+                
+                // If a piece is already selected, highlight its legal moves
+                const selectedPiece = document.querySelector('.piece.selected');
+                if (selectedPiece) {
+                    highlightLegalMoves(selectedPiece);
+                }
             }
             
             sendResponse({ success: true });
