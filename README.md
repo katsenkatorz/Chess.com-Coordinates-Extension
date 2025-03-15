@@ -1,6 +1,22 @@
 # Chess.com Coordinates Extension
 
-This Chrome extension displays chess square coordinates on chess.com with a hover effect.
+Enhance chess coordinate learning on Chess.com by clearly displaying square names on the board, with customization options to accommodate all learning styles.
+
+## Demo
+
+### Video Demonstration
+
+[![Chess.com Coordinates Extension Demo](https://img.youtube.com/vi/U97BpAJlC2k/0.jpg)](https://youtu.be/U97BpAJlC2k)
+
+### Screenshots
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+  <img src="screenshots/1.png" alt="Screenshot 1" style="width: 100%;">
+  <img src="screenshots/2.png" alt="Screenshot 2" style="width: 100%;">
+  <img src="screenshots/3.png" alt="Screenshot 3" style="width: 100%;">
+  <img src="screenshots/4.png" alt="Screenshot 4" style="width: 100%;">
+  <img src="screenshots/5.png" alt="Screenshot 5" style="width: 100%;">
+</div>
 
 ## Features
 
@@ -8,6 +24,12 @@ This Chrome extension displays chess square coordinates on chess.com with a hove
 - Hover effect that highlights the square being hovered over
 - Works whether the board is flipped or not
 - Toggle button to enable/disable coordinate display
+- Hide/show Chess.com's original coordinates
+- Enable/disable the hover highlight effect
+- Show coordinates only on hover
+- Highlight coordinates on legal moves for selected pieces
+- Adjust the font size of coordinates (50-100%)
+- Adjust the contrast/opacity of coordinates (2-20%)
 
 ## Prerequisites
 
