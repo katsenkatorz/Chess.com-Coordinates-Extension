@@ -9,6 +9,10 @@ This Chrome extension displays chess square coordinates on chess.com with a hove
 - Works whether the board is flipped or not
 - Toggle button to enable/disable coordinate display
 
+## Prerequisites
+
+For optimal display of coordinates, the **Impact** font should be installed on your system. If Impact is not available, the extension will fall back to Arial Black or sans-serif fonts, but the visual experience may be slightly different.
+
 ## Installation
 
 ### Development Mode Installation
@@ -31,7 +35,12 @@ This Chrome extension displays chess square coordinates on chess.com with a hove
 2. The extension will activate automatically when a chessboard is detected
 3. Square coordinates will be displayed on the board
 4. Hover over a square to highlight its coordinates
-5. Use the "Hide Coordinates" button in the bottom right to hide/show coordinates
+5. Click the extension icon to access the settings popup where you can:
+   - Toggle coordinate display on/off
+   - Hide/show Chess.com's original coordinates
+   - Enable/disable the hover highlight effect
+   - Adjust the font size of coordinates (50-100%)
+   - Adjust the contrast/opacity of coordinates (2-20%)
 
 ## Troubleshooting
 
@@ -40,6 +49,21 @@ If coordinates are not displaying correctly:
 1. Refresh the page
 2. Open the browser console (F12) and check for error messages
 3. Reset the extension by typing `window.reinitChessCoordinates()` in the console
+
+## Contributing
+
+Contributions are welcome! This project is open source and we encourage developers to help improve the Chess.com Coordinates Extension.
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed information on how to contribute to this project, including:
+
+- Reporting bugs
+- Suggesting enhancements
+- Submitting pull requests
+- Development setup
+- Code style guidelines
+- Feature ideas
+
+We look forward to your contributions!
 
 ## License
 
