@@ -4,10 +4,20 @@
 (function() {
     'use strict';
     
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+        @font-face {
+            font-family: 'Impact';
+            src: url('${chrome.runtime.getURL('fonts/impact.woff')}') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+    `;
+    document.head.appendChild(styleSheet);
+    console.log('Impact font loaded');
+    
     // Configuration
-    const MAX_RETRIES = 20;
-    const RETRY_INTERVAL = 500; // ms
-    let retryCount = 0;
     let extensionEnabled = true; // Track if the extension is enabled (power button state)
     let currentBoardOrientation = false; // false = standard (white at bottom), true = flipped (black at bottom)
     let currentCoordinatesVisible = true; // Track if coordinates are currently visible
@@ -216,7 +226,7 @@
                 label.textContent = algebraic;
                 label.dataset.algebraic = algebraic; // Store algebraic notation for reference
                 label.style.position = 'absolute';
-                label.style.fontFamily = 'Impact, Arial Black, sans-serif'; // Impact font
+                label.style.fontFamily = "'Impact','Chess Sans', 'Arial Black', sans-serif"; // Impact font from CDN
                 label.style.fontSize = calculateFontSize(chessBoard); // Dynamic font size based on board size
                 label.style.fontWeight = 'normal'; // Impact is already bold
                 label.style.color = `rgba(0, 0, 0, ${coordinateOpacity})`; // Use the global opacity setting
